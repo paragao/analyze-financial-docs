@@ -37,6 +37,12 @@ If you go to the AWS Lambda console you will see the funcion the template have d
  2. Create a logic that will trigger an Amazon Textract API Sync call to process the document and store its output back in your bucket, but in a different prefix. 
 
 &nbsp; 
+The documentation for the pieces you need to complet this steps are in the following links: 
+ * Boto3 SDK can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
+ * Amazon Textract in Boto3 can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/textract.html#id6)
+ * Amazon S3 in Boto3 can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html)
+
+&nbsp; 
 ## Step Three - create a function that will analyze the extracted text from the document
 The template also deployed an addition AWS Lambda fucntion. As in Step Two, this function is partially written and there are some helper functions. In order to complete this step sucesfully you have to:
  1. Create a logic that will download an object from Amazon S3 whenever some new file has been uploaded to the *textract_processed/* prefix. Use the helper functions to do that;
