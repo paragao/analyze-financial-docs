@@ -23,19 +23,19 @@ The documentation references are in the following links:
 There are two scenarios you can follow here: 
 
  **a. You are attending an AWS event and an AWS architect has provided you with credentials to an account**
-  * If this is your case, you should already been provided with an account, credentials, and the required steps to login to the AWS Console. 
-  * You can skip this step and go to Step Two
+     * If this is your case, you should already been provided with an account, credentials, and the required steps to login to the AWS Console. 
+     * You can skip this step and go to Step Two
 
  **b. You want to run this code by yourself in your own account**
   * first you need to access you AWS Console. Please login to an account before proceeding.
-  * then use [this AWS Cloudformation template](https://) to deploy the solution in your account
+  * then use [this AWS Cloudformation template](https://github.com/paragaoaws/analyze-financial-docs/blob/main/base-template.yaml) to deploy the solution in your account
   * fill out the required parameters and click "Next" on the other prompts until you can click on "Create Stack" at the end.
   * make sure you allow AWS Cloudformation to create IAM resources in your behalf.
 
 &nbsp;
 # The workshop guide
 The following diagram has been deployed in your account: 
-"IMG"
+![]()
 
 &nbsp; 
 Although this might seem a complete diagram, there are parts that are missing in order for the solution to run. Now we need to follow the steps below in order to complete it:
@@ -43,37 +43,39 @@ Although this might seem a complete diagram, there are parts that are missing in
 &nbsp;
 ## Step One - configure the automation using Amazon S3 Event Notifications
 First we need to create prefixes which will be used to upload the files and store the results: 
+
  1. Go to the AWS CloudFormation console and select the stack deployed for this workshop. In the Output tab you will find the name of the bucket created for those files.
  2. Now go to the Amazon S3 console and navigate to your bucket. Click on its name. 
  3. Create two folders named as such: 
-   - textract_input
-   - textract_output
+     - textract_input
+     - textract_output
 
 &nbsp;
 Now that we have a place to upload our files and store the model results, let's make so that whenever a new file is uploaded to the *textract_input/* prefix a function is automatically called to start the document analysis. In order to do that, complete the following steps: 
+
  4. On the Amazon S3 console, inside your bucket, click on the **Properties** tab.
  5. Scroll down until you find **Event notifications**
  6. Click on **Create event notification**
  7. You will be creating two events. Follow the input information below for the first one:
-   *Under General Configuration*
-   - **Event name**: analysis-using-textract
-   - **Prefix**: textract_input/
-   *Under Event types*
-   - Select the checkbox next to **All object create events**
-   *Under Destination*
-   - Select **Lambda Function**
-   - Select **Choose from your Lambda functions**
-   - Chose the lambda function that begins with **textract-analysis-** followed by a hash key 
+     *Under General Configuration*
+     - **Event name**: analysis-using-textract
+     - **Prefix**: textract_input/
+     *Under Event types*
+     - Select the checkbox next to **All object create events**
+     *Under Destination*
+     - Select **Lambda Function**
+     - Select **Choose from your Lambda functions**
+     - Chose the lambda function that begins with **textract-analysis-** followed by a hash key 
  8. Follow steps 5 and 6 to create another automation, but this time use the following information:
-   *Under General Configuration*
-   - **Event name**: analysis-using-comprehend
-   - **Prefix**: textract_output/
-   *Under Event types*
-   - Select the checkbox next to **All object create events**
-   *Under Destination*
-   - Select **Lambda Function**
-   - Select **Choose from your Lambda functions**
-   - Chose the lambda function that begins with **comprehend-analysis-** followed by a hash key 
+     *Under General Configuration*
+     - **Event name**: analysis-using-comprehend
+     - **Prefix**: textract_output/
+     *Under Event types*
+     - Select the checkbox next to **All object create events**
+     *Under Destination*
+     - Select **Lambda Function**
+     - Select **Choose from your Lambda functions**
+     - Chose the lambda function that begins with **comprehend-analysis-** followed by a hash key 
 
 Now that you have created your automation rules, two things will happen:
 * whenever a file is created/updated in the *textract_input/* folder then an AWS Lambda function will be called and the new/altered object information will be sent as the event of the funtion. This function will use that information to call the Amazon Textract APIs. The results will be output in the *textract_output/* folder.
