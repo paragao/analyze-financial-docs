@@ -173,6 +173,13 @@ Resources:
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
+  ##TODO:
+    # lambda for comprehend
+    # lambda execution role for comprehend
+    # dataRoleArn for the async ops
+    # verify if a lambda layer will be required
+    # how to make everything double, triple, etc.... 
+
 Outputs:
   InputS3Bucket:
     Description: Name of the input bucket

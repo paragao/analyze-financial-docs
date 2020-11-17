@@ -8,9 +8,8 @@ import uuid
 
 # ADD your Textract and Comprehend client/resource here
 s3 = boto3.client('s3')
-##ANSWER:
-textract = boto3.client('textract')
-comprehend = boto3.client('comprehend')
+## ANSWER 1 HERE:
+
 
 def download_object(request):
     print("request: {}\n".format(request))
@@ -56,20 +55,8 @@ def handler(event, context):
         #TODO: create your sync call here. 
         #use download_object(request) to download the object so you can send it to Textract
         print('sync API call')
-
-        #ANSWER:
-        syncResponse = textract.analyze_document(
-            Document={
-                'S3Object': { 
-                    'Bucket': request["bucketName"],
-                    'Name': request["objectName"]
-                }
-            },
-            FeatureTypes=[
-                'TABLES',
-                'FORMS'
-            ]
-        )
+        syncResponse = None
+        # ANSWER 2 HERE:
 
         upload_object(request, syncResponse)
         ###END ANSWER###
@@ -80,25 +67,8 @@ def handler(event, context):
         print('async API call')
         asyncResponse = None 
 
-        #ANSWER:
-        # Call the async operation
-        asyncResponse = textract.start_document_analysis(
-            DocumentLocation={
-                'S3Object': {
-                    'Bucket': request["bucketName"],
-                    'Name': request["objectName"]
-                }
-            },
-            FeatureTypes=[
-                    'TABLES',
-                    'FORMS'
-            ],
-            NotificationChannel={
-                'SNSTopicArn': topicArn,
-                'RoleArn': roleArn 
-            },
-            ClientRequestToken=str(uuid.uuid4())
-        )
+        #ANSWER 3 HERE:
+
         ###END ANSWER###
 
     # should return 200 for the API Gateway. Body can be different, if required.
