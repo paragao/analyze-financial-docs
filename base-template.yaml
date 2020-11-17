@@ -1,6 +1,32 @@
----
 AWSTemplateFormatVersion: '2010-09-09'
+
 Description: 'Stack to setup environment for Textract-Comprehend workshop'
+
+## FOR EE MODIFY ACCORDINGLY AND UPLOAD YOUR FUNCTION CODE TO THE ASSETS BUCKET PREVIOUSLY
+Parameters: 
+  BucketLambda: 
+    Type: String
+  ComprehendLambdaKey: 
+    Type: String
+  TextractLambdaKey:
+    Type: String 
+
+Metadata: 
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: 
+          default: "Source bucket for lambda functions"
+        Parameters:
+          - BucketLambda
+          - ComprehendLambdaKey
+          - TextractLambdaKey
+    ParameterLabels:
+      BucketLambda:
+        default: "Bucket name where your AWS Lambda functions zip files are stored in"
+      ComprehendLambdaKey:
+        default: "The Key (with prefix) for the Comprehend function"
+      TextractLambdaKey:
+        default: "The Key (with prefix) for the Textract function"
 
 Resources:
   InputS3Bucket:
@@ -10,6 +36,8 @@ Resources:
         - "-"
         - - "workshop-textract"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -48,7 +76,7 @@ Resources:
               Action:
                 - s3:Get*
                 - s3:Put*
-              Resource: !Sub arn:${AWS::Partition}:s3::${AccountId}:${InputS3Bucket}/*
+              Resource: !Sub arn:${AWS::Partition}:s3:::${InputS3Bucket}/*
         - PolicyName: 'Textract-and-Comprehend'
           PolicyDocument:
             Version: '2012-10-17'
@@ -71,100 +99,22 @@ Resources:
         - "-"
         - - "textract-analysis"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
-      Handler: index.handler
+      Handler: textract.handler
       MemorySize: 128
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.7
       Timeout: 120
+      Environment: 
+        Variables:
+          TOPIC_ARN: !Ref TextractAsyncTopic
+          ROLE_ARN: !GetAtt TextractServiceLinkedRole.Arn 
       Code: 
-        ZipFile: |
-          import json
-          import boto3
-          import urllib
-          import os
-          import uuid
-
-          # ADD your Textract and Comprehend client/resource here
-          s3 = boto3.client('s3')
-          ## ANSWER 1 HERE:
-
-
-          def download_object(request):
-              print("request: {}\n".format(request))
-                  
-              bucket = request["bucketName"]
-              key = request["objectName"]
-
-              tmpkey = key.replace('/', '')
-              download_path = '/tmp/{}{}'.format(uuid.uuid4(), tmpkey)
-              
-              print('downloading file\n')
-              s3.download_file(bucket, key, download_path)
-
-              return download_path
-
-          def upload_object(request, textractOutput):
-              print("request: {}\n".format(request))
-
-              bucket = request["bucketName"]
-              fileName = '/tmp/{}-output.json'.format(os.path.splitext(request["objectName"].lower())[0])
-              new_object = 'textract_output/{}.json'.format(os.path.splitext(request["objectName"].lower())[0])
-
-              # save JSON output as a file to be uploaded
-              with open(fileName, 'w') as f:
-                  json.dump(textractOutput, f)
-                  
-              print('uploading file\n')
-              s3.upload_file(fileName, bucket, new_object)
-
-          def handler(event, context):
-              print("event: {}\n".format(event))
-
-              topicArn = os.environ.get('TOPIC_ARN')
-              roleArn = os.environ.get('ROLE_ARN')
-
-              request = {}
-              request["bucketName"] = event['Records'][0]['s3']['bucket']['name']
-              request["objectName"] = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
-              ext = os.path.splitext(request["objectName"].lower())[1]
-
-              # if the file is JPG and PNG we can make a synchronus call to Textract. If it is a PDF, it have to be asynchronous.     
-              if (ext and ext in [".jpg", ".jpeg", ".png"]):
-                  #TODO: create your sync call here. 
-                  #use download_object(request) to download the object so you can send it to Textract
-                  print('sync API call')
-                  syncResponse = None
-                  # ANSWER 2 HERE:
-
-                  upload_object(request, syncResponse)
-                  ###END ANSWER###
-
-              else: 
-                  #TODO: create your async call here
-                  # use download_object(request) to download the object so you can send it to Textract
-                  print('async API call')
-                  asyncResponse = None 
-
-                  #ANSWER 3 HERE:
-                    # make sure you use upload_object(request, json_output) by the end of the answer so you save the json output as an object in Amazon S3
-                  ###END ANSWER###
-
-              # should return 200 for the API Gateway. Body can be different, if required.
-              if asyncResponse is not None:
-                  return {
-                      'statusCode': 200,
-                      'body': json.dumps(asyncResponse) 
-                  }
-              else: 
-                  return {
-                      'statusCode': 200,
-                      'body': json.dumps('Success!')
-                  }
-
+        S3Bucket: !Ref BucketLambda
+        S3Key: !Ref TextractLambdaKey
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
-  ## REQUIRE TOPIC FOR ASYNC OPERATION
+  ## REQUIRE TOPIC FOR ASYNC OPERATION --- REALLY??????? Double Check!
   TextractAsyncTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -173,12 +123,82 @@ Resources:
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
-  ##TODO:
-    # lambda for comprehend
-    # lambda execution role for comprehend
-    # dataRoleArn for the async ops
-    # verify if a lambda layer will be required
-    # how to make everything double, triple, etc.... 
+  ## REQUIRE SERVICE LINKED ROLE FOR ASYNC OPERATION
+  TextractServiceLinkedRole:
+    Type: AWS::IAM::Role 
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - textract.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"        
+      Policies:
+        - PolicyName: 'TextractServiceRole'
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sns:Publish'
+                Resource: !Sub arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:AmazonTextract*
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+  DataRoleArn:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - comprehend.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: 'ComprehendServiceLinkedRole'
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                  - 's3:PutObject'
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::*Comprehend*
+                  - !Sub arn:${AWS::Partition}:s3:::*comprehend*
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+  ComprehendAnalysis:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function in charge of launching Comprehend
+      FunctionName: !Join
+        - "-"
+        - - "comprehend-analysis"
+          - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
+      Handler: comprehend.handler
+      MemorySize: 128
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.7
+      Timeout: 120
+      Environment:
+        Variables:
+          DATA_ROLE_ARN: !GetAtt DataRoleArn.Arn 
+      Code: 
+        S3Bucket: !Ref BucketLambda
+        S3Key: !Ref ComprehendLambdaKey
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
 
 Outputs:
   InputS3Bucket:
@@ -186,5 +206,8 @@ Outputs:
     Value: !Ref InputS3Bucket
   DocumentTextractFunction:
     Description: Function that will be triggered when a document is uploaded in the input bucket
-    Value: !Ref DocumentTextract
+    Value: !Ref TextractAnalysis
+  DocumentComprehedFunction: 
+    Description: Function that will be triggered when a document is uploaded in the input bucket 
+    Value: !Ref ComprehendAnalysis
 

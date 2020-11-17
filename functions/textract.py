@@ -4,12 +4,15 @@ import urllib
 import os
 import sys
 import uuid
+import time
 
-
-# ADD your Textract and Comprehend client/resource here
 s3 = boto3.client('s3')
-## ANSWER 1 HERE:
+prefix = 'textract_output' # the prefix where files will be saved in the original bucket
 
+## ADD YOUR TEXTRACT BOTO3 CLIENT HERE
+##ANSWER:
+
+######
 
 def download_object(request):
     print("request: {}\n".format(request))
@@ -25,18 +28,23 @@ def download_object(request):
 
     return download_path
 
-def upload_object(request, textractOutput):
+def upload_object(request, response, name=None):
     print("request: {}\n".format(request))
+    keyNoExt = os.path.splitext(request["objectName"].lower())[0].split("/")[-1]
+
+    if name is not None:
+        new_object = '{}/{}-{}.json'.format(prefix, keyNoExt, name)
+    else: 
+        new_object = '{}/{}.json'.format(prefix, keyNoExt)
 
     bucket = request["bucketName"]
-    fileName = '/tmp/{}-output.json'.format(os.path.splitext(request["objectName"].lower())[0])
-    new_object = 'textract_output/{}.json'.format(os.path.splitext(request["objectName"].lower())[0])
+    fileName = '/tmp/{}-output.json'.format(keyNoExt)
 
     # save JSON output as a file to be uploaded
     with open(fileName, 'w') as f:
-        json.dump(textractOutput, f)
+        json.dump(response, f)
         
-    print('uploading file\n')
+    print('uploading file: {}\n'.format(new_object))
     s3.upload_file(fileName, bucket, new_object)
 
 def handler(event, context):
@@ -52,33 +60,24 @@ def handler(event, context):
 
     # if the file is JPG and PNG we can make a synchronus call to Textract. If it is a PDF, it have to be asynchronous.     
     if (ext and ext in [".jpg", ".jpeg", ".png"]):
-        #TODO: create your sync call here. 
-        #use download_object(request) to download the object so you can send it to Textract
-        print('sync API call')
-        syncResponse = None
-        # ANSWER 2 HERE:
+        print('Starting analyze_document()')
 
-        upload_object(request, syncResponse)
+        ## ANSWER 1:
+
         ###END ANSWER###
 
     else: 
         #TODO: create your async call here
         # use download_object(request) to download the object so you can send it to Textract
-        print('async API call')
+        print('Starting start_document_analysis()')
         asyncResponse = None 
 
-        #ANSWER 3 HERE:
+        ### ANSWER 2:
 
         ###END ANSWER###
 
     # should return 200 for the API Gateway. Body can be different, if required.
-    if asyncResponse is not None:
-        return {
-            'statusCode': 200,
-            'body': json.dumps(asyncResponse) 
-        }
-    else: 
-        return {
-            'statusCode': 200,
-            'body': json.dumps('Success!')
-        }
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Success!')
+    }
