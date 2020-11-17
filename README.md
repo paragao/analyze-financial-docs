@@ -130,6 +130,8 @@ The Amazon Textract AI service has a few APIs you can use. What we will do here 
 
   upload_object(request, syncResponse)
  ```
+ 3. After you add this code, click on **Deploy** so your code will be saved and deployed.
+
 
 Ok, so let's dive deeper into what we have done here. The AnalyzeDocument API requires some information, such as the source bucket where your file is, the name of the object, and if you want to analyze more than just text. Our function is already provisioned with some helper functions (which I will not go into detail here). So we are getting the object name and the source bucket from the event that was sent to the function (you can check the logs to see the complete payload, if you want), then we are calling *textract.analyze_document()* and configuring it to not only capture the text in the document, but also capture any forms or tables that the document have. This allows Amazon Textract to create relationships between those elements, and present those relationships in the output JSON file. Right at the end, after the API has returned, we upload the results into the *textract_output/* folder. This will trigger another of our automation but... more on that later!
 
@@ -140,7 +142,7 @@ Go ahead, and copy and paste that code into your AWS Lambda function. You should
 &nbsp;
 
 But there is a caveat! The AnalyzeDocument API, although very good whenever you need a synchronous response, does not process PDF files only PNG and JPEG. In order to process PDF files as well, we need to call the [StartDocumentAnalysis](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/textract.html#Textract.Client.start_document_analysis) API. Let's see how we can achieve that:
- 3. Add the following lines to your Lambda function right after the comment **\#\# START_DOCUMENT_ANALYSIS ANSWER: **
+ 4. Add the following lines to your Lambda function right after the comment **\#\# START_DOCUMENT_ANALYSIS ANSWER: **
  ```
   asyncResponse = textract.start_document_analysis(
       DocumentLocation={
@@ -173,6 +175,7 @@ But there is a caveat! The AnalyzeDocument API, although very good whenever you 
   else:
       upload_object(request, response)
  ```
+ 5. After you add this code, click on **Deploy** so your code will be saved and deployed.
 
 
 When calling the StartDocumentAnalysis API we need to provide additional information to the service, such as the source bucket and the object name, what features we want to extract form the text, an Amazon SNS Topic ARN (Amazon Resource Name) which will be used to control wether the job has succeeded or not, and an IAM Role ARN allowing Amazon Textract to publish a message into this topic. The last parameter, ClientRequestToken, allows you to re-trigger a specific job (if you send the same token) or make sure that your not accidentally starting the same job over and over again. Since this is an asynchronous call, we need to monitor if the job has completed or not. In order to do that we will use a loop anf call GetDocumentAnalysis using the JobID returned by our StartDocumentAnalysis API call. When the job completes, we use a helper function to upload the object into the *textract_output/* folder. Which, as I mentioned earlier, will trigger the second part of our automation. Let's talk about it now!
@@ -312,6 +315,10 @@ They are all self-explanatory, but if you want more details please take a look a
       )
  ```
  11. Results back in our bucket! Good! What an easy journey!
+ 12. After you add all of code above, click on **Deploy** so your code will be saved and deployed.
+
+### Testing - uploading a file and looking at the logs
+Ok, so now let's test this solution. Upload a file to your bucket inside the **textract_input/** folder. After you have uploaded it, go to the Amazon CloudWatch Logs console and click on **Log Groups** on the left hand side menu. Click on the **Log Stream** that will be shown, and then expand the logs. There are a lot of data there!
 
 
 As you could see, as you followed the instructions above, it was as easy as call different APIs in the same function in order to extract rich insights from our text. And it was only possible because Amazon Textract had already helped us extracting the text from our scanned documents. 

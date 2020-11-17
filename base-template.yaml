@@ -6,10 +6,13 @@ Description: 'Stack to setup environment for Textract-Comprehend workshop'
 Parameters: 
   BucketLambda: 
     Type: String
+    Default: "ee-assets-prod-us-east-1"
   ComprehendLambdaKey: 
     Type: String
+    Default: "modules/5a6f6b487d954af5add917dab9aad327/v1/comprehend.zip"
   TextractLambdaKey:
     Type: String 
+    Default: "modules/5a6f6b487d954af5add917dab9aad327/v1/textract.zip"
 
 Metadata: 
   AWS::CloudFormation::Interface:
@@ -37,7 +40,7 @@ Resources:
         - - "workshop-textract"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
     UpdateReplacePolicy: Retain
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
