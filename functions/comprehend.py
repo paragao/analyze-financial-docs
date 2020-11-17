@@ -72,9 +72,8 @@ def handler(event, context):
             text = text + block["Text"] + " "
 
     text = text.strip()
-    
-    # step 1: get the document language
-        # tip#1: the other comprehend calls required you to define what is the language of the document
+
+    #### STEP 1 - LANGUAGE DETECTION ####
     langText = text
     
     if sys.getsizeof(langText) > 5000: 
@@ -90,8 +89,7 @@ def handler(event, context):
 
     upload_object(request, response, 'language')
 
-    # STEP 2: find entities
-        # tip#1: detect_entities only support up to 5000 bytes per call. Encode in utf-8 and calculate the size before sending.
+    #### STEP 2 - ENTITIES DETECTION ####
     entitiesText = text
 
     if sys.getsizeof(entitiesText) > 5000:
@@ -117,8 +115,7 @@ def handler(event, context):
     print('Entities detected: {}'.format(entities))
     upload_object(request, entities, 'entities')
 
-    # STEP 3: find the overall sentiment (tone) of the text
-        # tip#1: every single call must be using a text with less than 5000 bytes
+    #### STEP 3 - SENTIMENT DETECTION ####
     sentimentText = text
     
     if sys.getsizeof(sentimentText) > 5000:
@@ -144,7 +141,7 @@ def handler(event, context):
     print('Sentiment detected: {}'.format(sentiment))
     upload_object(request, sentiment, 'sentiment')
 
-    # STEP 4: detect the key phrases in the text
+    #### STEP 4 - KEY PHRASES DETECTION ####
     phrasesText = text
     
     if sys.getsizeof(phrasesText) > 5000:
@@ -170,7 +167,7 @@ def handler(event, context):
     print('Key phrases detected: {}'.format(phrases))
     upload_object(request, phrases, 'key_phrases')
 
-    # STEP 5: detect syntax
+    #### STEP 5 - SYNTAX DETECTION ####
     syntaxText = text
     
     if sys.getsizeof(syntaxText) > 5000:

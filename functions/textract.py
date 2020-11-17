@@ -62,7 +62,7 @@ def handler(event, context):
     if (ext and ext in [".jpg", ".jpeg", ".png"]):
         print('Starting analyze_document()')
 
-        ## ANSWER 1:
+        ## ANALYZE_DOCUMENT ANSWER:
 
         ###END ANSWER###
 
@@ -72,7 +72,7 @@ def handler(event, context):
         print('Starting start_document_analysis()')
         asyncResponse = None 
 
-        ### ANSWER 2:
+        ### START_DOCUMENT_ANALYSIS ANSWER:
 
         ###END ANSWER###
 

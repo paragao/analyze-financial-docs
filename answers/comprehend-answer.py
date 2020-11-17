@@ -69,7 +69,6 @@ def handler(event, context):
             text = text + block["Text"] + " "
 
     text = text.strip()
-    #textEncoded = text.encode('utf-8')
     
     # step 1: get the document language
         # tip#1: the other comprehend calls required you to define what is the language of the document

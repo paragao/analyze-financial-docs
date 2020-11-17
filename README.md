@@ -8,10 +8,12 @@ In order to be able to run this workshop you will need:
  * be familiar with SDK documentation. We will be using the [Boto3 SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) and understanding how to read a SDK documentation is key to allow you to complete the steps below without looking at the spoilers.
 
 &nbsp;
+
 Bear in mind that you don't need to know anything about Machine Learning modeling or specific frameworks. This workshop will use AI Services, which provides API endpoints that you can use to consume ML models that have been trained on a curated dataset and do work well in most situations.
 
 &nbsp; 
-The documentation references are in the following links: 
+
+The references for the documentation are in the following links: 
  * Boto3 SDK can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
  * Amazon Textract in Boto3 can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/textract.html#id6)
  * Amamzon Comprehend in Boto3 can be found [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/comprehend.html#id64)
@@ -19,25 +21,27 @@ The documentation references are in the following links:
 
 &nbsp; 
 # Before you begin
-## Create the lab environment
+## Creating the lab environment
 There are two scenarios you can follow here: 
 
- **a. You are attending an AWS event and an AWS architect has provided you with credentials to an account**
+ * **a. You are attending an AWS event and an AWS architect has provided you with credentials to an account**
      * If this is your case, you should already been provided with an account, credentials, and the required steps to login to the AWS Console. 
      * You can skip this step and go to Step Two
 
- **b. You want to run this code by yourself in your own account**
-  * first you need to access you AWS Console. Please login to an account before proceeding.
-  * then use [this AWS Cloudformation template](https://github.com/paragaoaws/analyze-financial-docs/blob/main/base-template.yaml) to deploy the solution in your account
-  * fill out the required parameters and click "Next" on the other prompts until you can click on "Create Stack" at the end.
-  * make sure you allow AWS Cloudformation to create IAM resources in your behalf.
+ * **b. You want to run this code by yourself in your own account**
+     * first you need to access you AWS Console. Please login to an account before proceeding.
+     * then use [this AWS Cloudformation template](https://github.com/paragaoaws/analyze-financial-docs/blob/main/base-template.yaml) to deploy the solution in your account
+     * fill out the required parameters and click "Next" on the other prompts until you can click on "Create Stack" at the end.
+     * make sure you allow AWS Cloudformation to create IAM resources in your behalf.
 
 &nbsp;
 # The workshop guide
 The following diagram has been deployed in your account: 
+
+
 ![]()
 
-&nbsp; 
+
 Although this might seem a complete diagram, there are parts that are missing in order for the solution to run. Now we need to follow the steps below in order to complete it:
 
 &nbsp;
@@ -50,7 +54,7 @@ First we need to create prefixes which will be used to upload the files and stor
      - textract_input
      - textract_output
 
-&nbsp;
+
 Now that we have a place to upload our files and store the model results, let's make so that whenever a new file is uploaded to the *textract_input/* prefix a function is automatically called to start the document analysis. In order to do that, complete the following steps: 
 
  4. On the Amazon S3 console, inside your bucket, click on the **Properties** tab.
@@ -78,11 +82,13 @@ Now that we have a place to upload our files and store the model results, let's 
          - Chose the lambda function that begins with **comprehend-analysis-** followed by a hash key 
 
 Now that you have created your automation rules, two things will happen:
-* whenever a file is created/updated in the *textract_input/* folder then an AWS Lambda function will be called and the new/altered object information will be sent as the event of the funtion. This function will use that information to call the Amazon Textract APIs. The results will be output in the *textract_output/* folder.
+* whenever a file is created/updated in the ***textract_input/*** folder then an AWS Lambda function will be called and the new/altered object information will be sent as the event of the funtion. This function will use that information to call the Amazon Textract APIs. The results will be output in the ***textract_output/*** folder.
 
-* whenever a file is created/updated in the *textract_output/* folder then an AWS Lambda function will be called and the new/altered object information will be sent as the event of the funtion. This function will use that information to call the Amazon Comprehened APIs. The results will be output in the *comprehend_output/* folder. This folder will only be created after the whole processing is complete. 
+* whenever a file is created/updated in the ***textract_output/*** folder then an AWS Lambda function will be called and the new/altered object information will be sent as the event of the funtion. This function will use that information to call the Amazon Comprehened APIs. The results will be output in the ***comprehend_output/*** folder. This folder will only be created after the whole processing is complete. 
 
-The foundation has been setup for your intelligent application. Excellent! 
+The foundation has been setup for your intelligent application. Excellent!
+
+
 ![Mr Burns Excellent gif](https://big.assets.huffingtonpost.com/Mr-Burns-Saying-Excellent.gif)
 
 
@@ -92,16 +98,16 @@ But if you look in the AWS Lambda functions you will see that there are gaps you
 ## Step Two - using AI Services to build intelligent applications
 The required AWS Lambda functions have already been deployed in your account, with its required IAM Roles. But, those functions are not yet... well, functional :-)
 
-&nbsp;
+
 We will be using two AI Services in our application: [Amazon Textract], which allows us to analyze PDF, PNG, or JPG, files to extract text, tables, and key/value pairs, and Amazon Comprehend, which uses Natural Language Processing to extract insights about the content of documents.
 
 &nbsp;
 ### Amazon Textract - text detection and analysis
-The Amazon Textract AI service has a few APIs you can use. 
+The Amazon Textract AI service has a few APIs you can use. What we will do here is use two APIs: one that calls the service in a synchronous fashion, and the other one asynchronously. Let's see how we can send a document to be analyzed by Amazon Textract:
 
-What we will do here is use two APIs: one that calls the service in a synchronous fashion, and the other one asynchronously. Let's see how we can send a document to be analyzed by Amazon Textract:
-
- 1. First we need to make sure we are importing the boto3 library and creating a boto3.client to connect to the service
+ 1. Go to the AWS Lambda console and click on the Lambda function that starts with **textract-analysis**
+ 2. Scroll down to the **Function Code** part. Read the code that is already there and get yourself familiar with it. You will see that there are some parts you need to fill in.
+ 2. Now we need to make sure we are importing the boto3 library and creating a boto3.client to connect to the service
  ```
  import boto3
 
@@ -168,7 +174,165 @@ But there is a caveat! The AnalyzeDocument API, although very good whenever you 
       upload_object(request, response)
  ```
 
+
 When calling the StartDocumentAnalysis API we need to provide additional information to the service, such as the source bucket and the object name, what features we want to extract form the text, an Amazon SNS Topic ARN (Amazon Resource Name) which will be used to control wether the job has succeeded or not, and an IAM Role ARN allowing Amazon Textract to publish a message into this topic. The last parameter, ClientRequestToken, allows you to re-trigger a specific job (if you send the same token) or make sure that your not accidentally starting the same job over and over again. Since this is an asynchronous call, we need to monitor if the job has completed or not. In order to do that we will use a loop anf call GetDocumentAnalysis using the JobID returned by our StartDocumentAnalysis API call. When the job completes, we use a helper function to upload the object into the *textract_output/* folder. Which, as I mentioned earlier, will trigger the second part of our automation. Let's talk about it now!
 
 &nbsp;
 ### Amazon Comprehend - Natural Language Processing to extract insights from documents
+Alright, we have created an automation that will extract data from our documents. But what do we do with that data now? Does it just sit idly in a JSON format? No! Should we load it somewhere so we can extract insights such as key phrases, entities, sentiment, syntanx, and so on? Yes! And that's when Amazon Comprehened comes into the play. 
+
+
+You may have figured out that Amazon Textract is a very direct service, with a very specific role. Amazon Comprehend, on the other hand, has a lot more features. But it does not extract text from documents, it only analyzes documents which are already text (and not PDF, JPG, or PNG as we have seen so far). And that is why those two services complement each other perfectly: Amazon Textract extracts the text from your scanned documents and Amazon Comprehend analyzes them. Alright! So let's see how we can get insights from our text.
+
+
+Amazon Comprehend gives us access to the following API calls: 
+ * detect_dominant_language()
+ * detect_entities()
+ * detect_entities()
+ * detect_key_phrases()
+ * detect_syntax()
+
+
+They are all self-explanatory, but if you want more details please take a look at the documentation provided in the beggining of this tutorial. Let's see them in action and what we need to do to have all of them in our function.
+ 1. Go to the AWS Lambda console and chose the function that starts with **comprehend-analysis**
+ 2. Scroll down to the **Function Code** section. Read the code that is already there and get yourself familiar with it.
+ 3. Once again we need to make sure we are importing the boto3 module and creating a boto3.client for Amazon Comprehend.
+ ```
+ import boto3
+ 
+ comprehend = boto3.client('comprehend')
+ ```
+ 4. Now we will create several API calls. Every Amazon Comprehend API call require a LanguageCode parameter, so let's start by detecting the language which our text is written in. You can see in the code that we are already processing the input file for you (which was passed by the automation you have created before). Amazon Comprehend has a specific requirement which is that we can pass more than 5000 bytes per API call. So let's get just a bit of our text to identify the dominant language.
+ ```
+  langText = text
+  
+  if sys.getsizeof(langText) > 5000: 
+      langText = text[:3000]
+
+  response = comprehend.detect_dominant_language(
+      Text=langText
+  )
+ ```
+ 5. After we got rid of the extra bytes it was easy to identify the dominant language! We then upload the result back into our bucket so we can have all the small details safely stored in our data lake. Oh! I mean, bucket ;-) 
+ 6. So, now let's start actually getting the real insights from our text. We will look into entitites. This is the API call required to detect all entities.
+ ```
+  entitiesText = text
+
+  if sys.getsizeof(entitiesText) > 5000:
+      loops = math.ceil(sys.getsizeof(entitiesText) / 5000)
+      while loops > 0:
+          if len(entitiesText) < 4000:
+              size = len(entitiesText)
+          else:
+              size = 4000
+
+          entities[loops] = comprehend.detect_entities(
+              Text=entitiesText[:size],
+              LanguageCode=language
+          )
+          entitiesText = entitiesText[size:]
+          loops -= 1
+  else: 
+      entities = comprehend.detect_entities(
+              Text=text,
+              LanguageCode=language
+          )
+ ```
+ 7. Once again we have to verify if we are not sending more than 5000 bytes. If so, then we will split that text into less bytes and loop until we have processed the complete text. (yes, I know, this is not an elegant code but the idea here is not to discuss Python's best practice or programming models).
+ 8. Let's keep on getting more insights. Let's detect the sentiment (or tone) of the text. 
+ ```
+  sentimentText = text
+  
+  if sys.getsizeof(sentimentText) > 5000:
+      loops = math.ceil(sys.getsizeof(sentimentText) / 5000)
+      while loops > 0:
+          if len(sentimentText) < 4000:
+              size = len(sentimentText)
+          else:
+              size = 4000
+
+          sentiment[loops] = comprehend.detect_sentiment(
+              Text=sentimentText[:size],
+              LanguageCode=language
+          )
+          sentimentText = sentimentText[size:]
+          loops -= 1            
+  else:
+      sentiment = comprehend.detect_sentiment(
+          Text=text,
+          LanguageCode=language
+      )
+ ```
+ 9. And once more we upload the results back into our bucket (or data lake). Next step will be detecting the Key Phrases in our text. 
+ ```
+  phrasesText = text
+  
+  if sys.getsizeof(phrasesText) > 5000:
+      loops = math.ceil(sys.getsizeof(phrasesText) / 5000)
+      while loops > 0:
+          if len(phrasesText) < 4000:
+              size = len(phrasesText)
+          else:
+              size = 4000
+
+          phrases[loops] = comprehend.detect_key_phrases(
+              Text=phrasesText[:size],
+              LanguageCode=language
+          )
+          phrasesText = phrasesText[size:]
+          loops -= 1
+  else:
+      phrases = comprehend.detect_key_phrases(
+          Text=text,
+          LanguageCode=language 
+      )
+ ```
+ 10. And we upload the results at the end. How about we extract even more info? Shall we detect the syntax? Yes, we shall!
+ ```
+  syntaxText = text
+  
+  if sys.getsizeof(syntaxText) > 5000:
+      loops = math.ceil(sys.getsizeof(syntaxText) / 5000)
+      while loops > 0:
+          if len(syntaxText) < 4000:
+              size = len(syntaxText)
+          else:
+              size = 4000
+
+          syntax[loops] = comprehend.detect_syntax(
+              Text=syntaxText[:size],
+              LanguageCode=language
+          )
+          syntaxText = syntaxText[size:]
+          loops -= 1
+  else:
+      syntax = comprehend.detect_syntax(
+          Text=text,
+          LanguageCode=language 
+      )
+ ```
+ 11. Results back in our bucket! Good! What an easy journey!
+
+
+As you could see, as you followed the instructions above, it was as easy as call different APIs in the same function in order to extract rich insights from our text. And it was only possible because Amazon Textract had already helped us extracting the text from our scanned documents. 
+
+
+With that info loaded in an Amazon S3 bucket we can do a lot of different things, such as:
+* use AWS Glue to crawl or data and identify the metadata creating tables which we can query using Amazon Athena;
+* use AWS Lake Formation to segment and segregate our users access to the specific data they are elligible, increasing security and enforcing governance of the data;
+* use Amazon Quicksight to create dashboards based on our data, and use Machine Learning models that will detect anomalies and other rich information;
+* customize our solution to use a custom dictionary or custom model and still have the easeness of using AI Services.
+
+&nbsp;
+# Conclusion and next steps
+We have achieved a lot in this tutorial and it was very easy but very powerfull as well! In a few seconds we had our documents analyzed by Amazon Textract and Amazon Comprehend as well. We were able to extract a lot of insights and now we can keep on using that information to build intelligent applications. Some ideas to use those insights: 
+ * reduce churn by understanding your user better;
+ * reduce fraud from forms and other documents;
+ * create a sentiment heat map of your products;
+ * automate document analysis, reducing labor hours required to process documents;
+ * enrich your data lake with all the insights extracted from your documents;
+ * understand patterns that are not easy to spot, such user segmentation and personalization;
+ * desing Next Best Action (NBA) and Next Best Offer (NBO) products, enriching the decision model with more data!
+
+***
+Author: Paulo Aragão
