@@ -321,6 +321,12 @@ They are all self-explanatory, but if you want more details please take a look a
 Ok, so now let's test this solution. Upload a file to your bucket inside the **textract_input/** folder. After you have uploaded it, go to the Amazon CloudWatch Logs console and click on **Log Groups** on the left hand side menu. Click on the **Log Stream** that will be shown, and then expand the logs. There are a lot of data there!
 
 
+If you don't have a file to test with, here are some links you can use:
+* [G-20 Surveillance Notes, giving an overview of the global economic](https://www.imf.org/external/np/g20/pdf/2020/071620.pdf)
+* [COVID-19 situation update for the EU/EEA and the UK, as of 17 November 2020](https://www.ecdc.europa.eu/en/cases-2019-ncov-eueea)
+* [Front page of a Brazilian newspaper focused on Finance](https://www.vercapas.com.br/edicao/capa/valor-economico/2019-12-09/)
+
+
 As you could see, as you followed the instructions above, it was as easy as call different APIs in the same function in order to extract rich insights from our text. And it was only possible because Amazon Textract had already helped us extracting the text from our scanned documents. 
 
 

@@ -2,6 +2,7 @@
 *.code-workspace
 analyze-financial-docs/
 awscdk/
+unit-tests/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
