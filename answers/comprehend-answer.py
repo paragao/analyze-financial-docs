@@ -192,6 +192,11 @@ def handler(event, context):
     print('Syntax detected: {}'.format(syntax))
     upload_object(request, syntax, 'syntax')
 
+    # Format the output nicely in a new file
+    for loops in syntax:
+        for token in syntx[loops]["SyntaxTokens"]:
+            print('Text: {:<20}\t Syntax: {}'.format(token["Text"], token["PartOfSpeech"]["Tag"]))    
+
     ## step 6: find PII entities    
     #    # tip#1: different from Types are found such as BANK_ACCOUNT_NUMBER, BANK_ROUTING, CREDIT_DEBIT_NUMBER
     #    # tip#2: it is only working as an async call start_pii_entities_detection_job()

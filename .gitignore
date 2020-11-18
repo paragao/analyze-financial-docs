@@ -3,6 +3,7 @@
 analyze-financial-docs/
 awscdk/
 unit-tests/
+website/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
