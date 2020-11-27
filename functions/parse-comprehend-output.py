@@ -11,14 +11,24 @@ with open(f, 'r') as json_file:
 
 if doc_type == 'syntax':
     for loops in json:
-        for token in json[loops]["SyntaxTokens"]:
-            print('Text: {:<20}\t Syntax: {}'.format(token["Text"], token["PartOfSpeech"]["Tag"]))
+        if loops == "SyntaxTokens":
+            for token in json[loops]:
+                print('Text: {:<20}\t Syntax: {}'.format(token["Text"], token["PartOfSpeech"]["Tag"]))    
+        elif loops.isnumeric(): 
+            for token in json[loops]["SyntaxTokens"]:
+                print('Text: {:<20}\t Syntax: {}'.format(token["Text"], token["PartOfSpeech"]["Tag"]))
+
 
 elif doc_type == 'sentiment':
     for loops in json:
-        print('Overall tone: {}'.format(json[loops]["Sentiment"]))
-        for sentiment, score in json[loops]["SentimentScore"].items():
-            print('\t{}, Score: {:.2%}'.format(sentiment, score))
+        if loops == "SyntaxTokens":
+            print('Overall tone: {}'.format(json[loops]["Sentiment"]))
+            for sentiment, score in json[loops]["SentimentScore"].items():
+                print('\t{}, Score: {:.2%}'.format(sentiment, score))
+        elif loops.isnumeric(): 
+            print('Overall tone: {}'.format(json[loops]["Sentiment"]))
+            for sentiment, score in json[loops]["SentimentScore"].items():
+                print('\t{}, Score: {:.2%}'.format(sentiment, score))
 
 elif doc_type == 'entities':
     for loops in json:
