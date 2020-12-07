@@ -80,17 +80,13 @@ Resources:
                 - s3:Get*
                 - s3:Put*
               Resource: !Sub arn:${AWS::Partition}:s3:::${InputS3Bucket}/*
-        - PolicyName: 'Textract-and-Comprehend'
+        - PolicyName: 'FullAccess'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
             - Effect: Allow
-              Action:
-                - textract:*
-                - comprehend:*
-              Resource: 
-                - !Sub arn:${AWS::Partition}:textract:${AWS::Region}:${AWS::AccountId}:*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:*
+              Action: "*"
+              Resource: "*"
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
