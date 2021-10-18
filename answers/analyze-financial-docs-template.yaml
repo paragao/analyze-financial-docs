@@ -117,12 +117,15 @@ Resources:
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
-  ## REQUIRE TOPIC FOR ASYNC OPERATION
+  ## REQUIRE TOPIC FOR ASYNC OPERATION 
   TextractAsyncTopic:
     Type: AWS::SNS::Topic
     Properties:
       DisplayName: TextractWorkshop
-      TopicName: TextractWorkshop
+      TopicName: !Join
+        - ""
+        - - "Textract"
+          - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
