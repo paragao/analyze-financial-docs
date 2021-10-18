@@ -94,7 +94,7 @@ Resources:
                 - textract:DetectDocumentText
                 - textract:GetDocumentAnalysis
                 - textract:GetDocumentTextDetection
-              Resource: '*'
+              Resource: '*' ## Textract does not allow specific resources
         - PolicyName: 'Comprehend-policy'
           PolicyDocument:
             Version: '2012-10-17'
