@@ -80,17 +80,41 @@ Resources:
                 - s3:Get*
                 - s3:Put*
               Resource: !Sub arn:${AWS::Partition}:s3:::${InputS3Bucket}/*
-        - PolicyName: 'Textract-and-Comprehend'
+        - PolicyName: 'Textract-policy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
             - Effect: Allow
               Action:
-                - textract:*
+                - textract:StartDocumentAnalysis
+                - textract:StartDocumentTextDetection
+                - textract:AnalyzeDocument
+                - textract:AnalyzeDocument
+                - textract:AnalyzeExpense
+                - textract:DetectDocumentText
+                - textract:GetDocumentAnalysis
+                - textract:GetDocumentTextDetection
+              Resource: '*'
+        - PolicyName: 'Comprehend-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
                 - comprehend:*
-              Resource: 
-                - !Sub arn:${AWS::Partition}:textract:${AWS::Region}:${AWS::AccountId}:*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:*
+              Resource:
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classification-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classifier/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classifier-endpoint/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:dominant-language-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entities-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entity-recognizer/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entity-recognizer-endpoint/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:events-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:key-phrases-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:pii-entities-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:sentiment-detection-job/*
+                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:topics-detection-job/*
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
@@ -102,7 +126,7 @@ Resources:
         - "-"
         - - "textract-analysis"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
-      Handler: textract.handler
+      Handler: textract-answer.handler
       MemorySize: 128
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.7
@@ -192,7 +216,7 @@ Resources:
         - "-"
         - - "comprehend-analysis"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
-      Handler: comprehend.handler
+      Handler: comprehend-answer.handler
       MemorySize: 128
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.7
