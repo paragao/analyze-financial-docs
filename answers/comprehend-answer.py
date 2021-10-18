@@ -194,7 +194,7 @@ def handler(event, context):
 
     # Format the output nicely in a new file
     for loops in syntax:
-        for token in syntx[loops]["SyntaxTokens"]:
+        for token in syntax[loops]["SyntaxTokens"]:
             print('Text: {:<20}\t Syntax: {}'.format(token["Text"], token["PartOfSpeech"]["Tag"]))    
 
     ## step 6: find PII entities    

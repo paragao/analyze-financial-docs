@@ -87,13 +87,8 @@ Resources:
             - Effect: Allow
               Action:
                 - textract:StartDocumentAnalysis
-                - textract:StartDocumentTextDetection
                 - textract:AnalyzeDocument
-                - textract:AnalyzeDocument
-                - textract:AnalyzeExpense
-                - textract:DetectDocumentText
                 - textract:GetDocumentAnalysis
-                - textract:GetDocumentTextDetection
               Resource: '*' ## Textract does not allow specific resources
         - PolicyName: 'Comprehend-policy'
           PolicyDocument:
@@ -101,20 +96,12 @@ Resources:
             Statement:
             - Effect: Allow
               Action:
-                - comprehend:*
-              Resource:
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classification-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classifier/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:document-classifier-endpoint/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:dominant-language-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entities-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entity-recognizer/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:entity-recognizer-endpoint/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:events-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:key-phrases-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:pii-entities-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:sentiment-detection-job/*
-                - !Sub arn:${AWS::Partition}:comprehend:${AWS::Region}:${AWS::AccountId}:topics-detection-job/*
+                - comprehend:DetectDominantLanguage
+                - comprehend:DetectEntities
+                - comprehend:DetectSentiment
+                - comprehend:DetectKeyPhrases
+                - comprehend:DetectSyntax
+              Resource: '*'
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
 
