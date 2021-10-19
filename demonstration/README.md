@@ -30,7 +30,7 @@ There are two scenarios you can follow here:
 
  * **b. You want to run this code by yourself in your own account**
      * first you need to access you AWS Console. Please login to an account before proceeding.
-     * then use [this AWS Cloudformation template](https://github.com/paragaoaws/analyze-financial-docs/blob/main/base-template.yaml) to deploy the solution in your account
+     * then use [this AWS Cloudformation template](https://github.com/paragao/demonstration/analyze-financial-docs/blob/main/base-template.yaml) to deploy the solution in your account
      * fill out the required parameters and click "Next" on the other prompts until you can click on "Create Stack" at the end.
      * make sure you allow AWS Cloudformation to create IAM resources in your behalf.
 
