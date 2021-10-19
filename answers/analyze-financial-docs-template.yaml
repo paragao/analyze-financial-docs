@@ -2,17 +2,13 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Description: 'Stack to setup environment for Textract-Comprehend workshop'
 
-## FOR EE MODIFY ACCORDINGLY AND UPLOAD YOUR FUNCTION CODE TO THE ASSETS BUCKET PREVIOUSLY
 Parameters: 
   BucketLambda: 
     Type: String
-    Default: "ee-assets-prod-us-east-1"
   ComprehendLambdaKey: 
     Type: String
-    Default: "modules/5a6f6b487d954af5add917dab9aad327/v1/comprehend.zip"
   TextractLambdaKey:
     Type: String 
-    Default: "modules/5a6f6b487d954af5add917dab9aad327/v1/textract.zip"
 
 Metadata: 
   AWS::CloudFormation::Interface:
@@ -39,8 +35,29 @@ Resources:
         - "-"
         - - "workshop-textract"
           - !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]]
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key: 
+                Rules:
+                  - Name: prefix
+                    Value: textract_input/
+            Function: !GetAtt TextractAnalysis.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key: 
+                Rules: 
+                  - Name: prefix
+                    Value: textract_output/
+            Function: !GetAtt ComprehendAnalysis.Arn
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
+    DependsOn:
+      - TextractAnalysis
+      - ComprehendAnalysis
+      - TextractInvokePermission
+      - ComprehendInvokePermission
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -79,7 +96,13 @@ Resources:
               Action:
                 - s3:Get*
                 - s3:Put*
-              Resource: !Sub arn:${AWS::Partition}:s3:::${InputS3Bucket}/*
+              Resource: 
+                - !Sub 
+                  - arn:${AWS::Partition}:s3:::workshop-textract-${Hash}/*
+                  - { Hash: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]] }
+                - !Sub 
+                  - arn:${AWS::Partition}:s3:::workshop-textract-${Hash}
+                  - { Hash: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]] }
         - PolicyName: 'Textract-policy'
           PolicyDocument:
             Version: '2012-10-17'
@@ -101,9 +124,29 @@ Resources:
                 - comprehend:DetectSentiment
                 - comprehend:DetectKeyPhrases
                 - comprehend:DetectSyntax
-              Resource: '*'
+              Resource: '*' ## Comprehend does not allow specific resources
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
+
+  TextractInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TextractAnalysis
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 
+        - arn:${AWS::Partition}:s3:::workshop-textract-${Hash}
+        - { Hash: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]] }
+
+  ComprehendInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ComprehendAnalysis
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 
+        - arn:${AWS::Partition}:s3:::workshop-textract-${Hash}
+        - { Hash: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]] }
 
   TextractAnalysis:
     Type: AWS::Lambda::Function
