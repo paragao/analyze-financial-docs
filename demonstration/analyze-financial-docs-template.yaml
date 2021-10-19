@@ -137,6 +137,7 @@ Resources:
       SourceArn: !Sub 
         - arn:${AWS::Partition}:s3:::workshop-textract-${Hash}
         - { Hash: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref "AWS::StackId"]]]] }
+      SourceAccount: !Ref AWS::AccountId
 
   ComprehendInvokePermission:
     Type: AWS::Lambda::Permission
